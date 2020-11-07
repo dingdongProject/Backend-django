@@ -101,14 +101,14 @@ class CircleList(APIView):
             circle = Circle.objects.get(name=name)
         except:
             circle = False
-        if (circle):
-            return JsonResponse({"result": "Already Exist"})
+        if circle:
+            return JsonResponse({"success": False})
         circle = Circle.objects.create(name=name, explanation=explanation)
         Board.objects.create(name="Notice", circle=circle, memberWrite=False)
         Board.objects.create(name="Gallery", circle=circle)
         MemberShip.objects.create(user=DUser.objects.get(username=request.user), circle=circle, isAdmin=True, isActive=True)
         serializer = CircleSerializer(circle)
-        return JsonResponse({"result": "success", "circle": serializer.data}, safe=False)
+        return JsonResponse({"success": False, "circle": serializer.data}, safe=False)
 
     def delete(self, request, format=None):
         name = request.data['name']
@@ -116,8 +116,8 @@ class CircleList(APIView):
             circle = Circle.objects.get(name=name)
             circle.delete()
         except:
-            return JsonResponse({"result": "Failed"})
-        return JsonResponse({"result": "success"}, safe=False)
+            return JsonResponse({"success": False})
+        return JsonResponse({"success": True}, safe=False)
 
 class CircleDetail(APIView):
     permission_classes = (IsAuthenticated,)
@@ -150,7 +150,7 @@ class BoardList(APIView):
     def post(self, request, circle, board, format=None):
         try:
             if not check_authorization(request.user, circle):
-                return JsonResponse({"success": "Fail. UnAuthorized"})
+                return JsonResponse({"success": False})
             circle = Circle.objects.get(name=circle)
             board = Board.objects.create(name=board, circle=circle)
             return JsonResponse({"success": True, "board": {"id": board.id, "name": board.name, "memberWrite": board.memberWrite, "circle": board.circle.name}})
