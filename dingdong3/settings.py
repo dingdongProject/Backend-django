@@ -27,7 +27,7 @@ SECRET_KEY = 'm9z+*eg8o^rxz0bj)+3e(+g^w&=*yw*dheu&9n9b^w7y$j@p(7'
 DEBUG = True
 
 ALLOWED_HOSTS = [
-'junslim11.pythonanywhere.com','127.0.0.1'
+'junslim11.pythonanywhere.com','127.0.0.1','52.78.45.254'
 ]
 
 
