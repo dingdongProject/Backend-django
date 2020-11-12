@@ -31,7 +31,7 @@ class BoardSerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model= Post
-        fields =['board', 'title', 'content', 'owner']
+        fields =['id', 'board', 'title', 'content', 'owner']
 
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:

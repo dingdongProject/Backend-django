@@ -19,7 +19,7 @@ class Circle(models.Model):
         return self.name
 
 class MemberShip(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(DUser, on_delete=models.CASCADE)
     circle = models.ForeignKey('Circle', on_delete=models.CASCADE)
     isAdmin = models.BooleanField(default=False)
     isActive = models.BooleanField(default=False)
@@ -50,6 +50,9 @@ class Comment(models.Model):
     content = models.CharField(max_length=1000, default='None')
     owner = models.ForeignKey('Duser', on_delete=models.CASCADE)
 
-
+class Read(models.Model):
+    post = models.ForeignKey('Post', on_delete=models.CASCADE)
+    user = models.ForeignKey('Duser', on_delete=models.CASCADE)
+    hasRead = models.BooleanField(default=False)
 
 

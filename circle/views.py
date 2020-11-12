@@ -3,8 +3,8 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
-from circle.models import Circle, MemberShip, DUser, Board
-from circle.serializers import DUserSerializer, CircleSerializer, MemberShipSerializer, BoardSerializer
+from circle.models import Circle, MemberShip, DUser, Board, Post, Read
+from circle.serializers import DUserSerializer, CircleSerializer, MemberShipSerializer, BoardSerializer, PostSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.http import Http404
@@ -185,7 +185,49 @@ class BoardDetail(APIView):
             print(e)
             return JsonResponse({"success": False})
 
+class PostList(APIView):
+    permission_classes = (IsAuthenticated,)
+    def post(self, request, pk, format=None):
+        try:
+            board = Board.objects.get(id=pk)
+            title = request.data['title']
+            content = request.data['content']
+            user = DUser.objects.get(username=request.user)
+            post = Post.objects.create(board=board, title=title, content=content, owner=user)
+            circle = board.circle
+            membership = MemberShip.objects.filter(circle=circle)
+            members = [member.user for member in membership]
+            for member in members:
+                Read.objects.create(post=post, user=member)
+            serializer = PostSerializer(post)
+            return JsonResponse({"success": True, "post": serializer.data})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False})
 
+    def get(self, request, pk, format=None):
+        try:
+            board = Board.objects.get(id=pk)
+            posts = Post.objects.filter(board=board)
+            serializer = PostSerializer(posts, many=True)
+            return JsonResponse({"success": True, "post": serializer.data})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False})
+
+class ReadMarking(APIView):
+    permission_classes = (IsAuthenticated,)
+    def post(self, request, pk, format=None):
+        try:
+            user = DUser.objects.get(username=request.user)
+            post = Post.objects.get(id=pk)
+            read = Read.objects.get(user=user, post=post)
+            read.hasRead = True
+            read.save()
+            return JsonResponse({"success": True})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False})
 
 def check_authorization(user, circle):
     circle = Circle.objects.get(name=circle)
