@@ -26,11 +26,6 @@ SECRET_KEY = 'm9z+*eg8o^rxz0bj)+3e(+g^w&=*yw*dheu&9n9b^w7y$j@p(7'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-'junslim11.pythonanywhere.com','127.0.0.1','52.78.45.254'
-]
-
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -48,7 +43,6 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',

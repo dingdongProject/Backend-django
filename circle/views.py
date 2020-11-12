@@ -4,7 +4,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 from circle.models import Circle, MemberShip, DUser, Board
-from circle.serializers import DUserSerializer, CircleSerializer, MemberShipSerializer, BoardSerializer
+from circle.serializers import DUserSerializer, CircleSerializer, MemberShipSerializer, BoardSerializer, PostSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.http import Http404
@@ -184,8 +184,6 @@ class BoardDetail(APIView):
         except Exception as e:
             print(e)
             return JsonResponse({"success": False})
-
-
 
 def check_authorization(user, circle):
     circle = Circle.objects.get(name=circle)

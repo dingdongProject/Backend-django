@@ -6,12 +6,10 @@ class DUserSerializer(serializers.ModelSerializer):
         model = DUser
         fields = ['username', 'picture', 'email']
 
-
 class CircleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Circle
         fields = ['name', 'explanation', 'picture']
-
 
 class MemberShipSerializer(serializers.ModelSerializer):
     class Meta:
@@ -37,4 +35,3 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ['post', 'content', 'owner']
-
