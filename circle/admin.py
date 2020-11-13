@@ -1,7 +1,6 @@
 from django.contrib import admin
 # Register your models here.
-from circle.models import Circle, MemberShip, DUser, Schedule, Board, Post, Comment, Read
-
+from circle.models import Circle, MemberShip, DUser, Schedule, Board, Post, Read, Comment
 
 admin.site.register(Circle)
 admin.site.register(DUser)

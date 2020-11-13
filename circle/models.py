@@ -44,13 +44,19 @@ class Post(models.Model):
     title = models.CharField(max_length=100, default='None')
     content = models.CharField(max_length=1000, default='None')
     owner = models.ForeignKey('Duser', on_delete=models.CASCADE)
-class Comment(models.Model):
-    post = models.ForeignKey('Post', on_delete=models.CASCADE)
-    content = models.CharField(max_length=1000, default='None')
-    owner = models.ForeignKey('Duser', on_delete=models.CASCADE)
+    created_at = models.DateField(default=datetime.date.today())
+    updated_at = models.DateField(default=datetime.date.today())
 
 class Read(models.Model):
     post = models.ForeignKey('Post', on_delete=models.CASCADE)
     user = models.ForeignKey('Duser', on_delete=models.CASCADE)
     hasRead = models.BooleanField(default=False)
+
+class Comment(models.Model):
+    post = models.ForeignKey('Post', on_delete=models.CASCADE)
+    content = models.CharField(max_length=1000, default='None')
+    owner = models.ForeignKey('Duser', on_delete=models.CASCADE)
+    created_at = models.DateField(default=datetime.date.today())
+    updated_at = models.DateField(default=datetime.date.today())
+
 

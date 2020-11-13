@@ -3,9 +3,10 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
-from circle.models import Circle, MemberShip, DUser, Board, Post, Read
-from circle.serializers import DUserSerializer, CircleSerializer, MemberShipSerializer, BoardSerializer, PostSerializer
+from circle.models import Circle, MemberShip, DUser, Board, Post, Read, Comment
+from circle.serializers import DUserSerializer, CircleSerializer, MemberShipSerializer, BoardSerializer, PostSerializer, CommentSerializer
 from rest_framework.views import APIView
+
 from rest_framework.response import Response
 from django.http import Http404
 from rest_framework import status
@@ -229,6 +230,63 @@ class ReadMarking(APIView):
             print(e)
             return JsonResponse({"success": False})
 
+
+class CommentList(APIView):
+    permission_classes = (IsAuthenticated,)
+    def post(self, request, pk, format=None):
+        try:
+            user = Duser.objects.get(username=username)
+            post = Post.objects.get(id=pk)
+            content = request.data['content']
+            comment = Comment.objects.create(owner=user, post=post, content=content)
+            return JsonResponse({"success": True})
+
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False})
+
+    def get(self, pk, format=None):
+        try:
+            post = Post.objects.get(id=pk)
+            comments = Comment.objects.filter(post=post)
+            serializer = CommentSerializer(comments, many=True)
+            return JsonResponse({"success": True, "comments": serializer.data})
+
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False})
+
+
+
+
+
+class CommentDetail(APIView):
+
+    def delete(self, comment_pk, format=None):
+        try:
+            comment = Comment.objects.get(id=comment_pk)
+            comment.delete()
+
+        except:
+            return JsonResponse({"success": False})
+        return JsonResponse({"success": True}, safe=False)
+
+
+
+
+    def put(self, request, comment_pk, format=None):
+        try:
+            comment = Comment.objects.get(id=comment_pk)
+            content = request.data['content']
+            comment.content = content
+            comment.save()
+            return JsonResponse({"success": True, "content": comment.content})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False})
+
+
+#기능 추가
 def check_authorization(user, circle):
     circle = Circle.objects.get(name=circle)
     user = DUser.objects.get(username=user)
