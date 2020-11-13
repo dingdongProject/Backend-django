@@ -15,5 +15,8 @@ urlpatterns = [
     path('circles/<slug:circle>/boards', views.BoardList.as_view()),
     path('board/<int:pk>', views.BoardDetail.as_view()),
     path('board/<int:pk>/post', views.PostList.as_view()),
-    path('post/<int:pk>/read', views.ReadMarking.as_view())
+    path('post/<int:pk>/read', views.ReadMarking.as_view()),
+    path('post/<int:pk>/comment', views.CommentList.as_view()),
+    path('post/<int:pk>/comment/<int:comment_pk>', views.CommentDetail.as_view())
+
 ]
