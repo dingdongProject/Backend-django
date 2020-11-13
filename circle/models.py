@@ -4,7 +4,7 @@ import datetime
 # Create your models here.
 
 class DUser(User):
-    picture = models.URLField('picture')
+    picture = models.FileField()
 
     def __str__(self):
         return self.username
@@ -13,7 +13,7 @@ class DUser(User):
 class Circle(models.Model):
     name = models.CharField(max_length=100, default='circle')
     explanation = models.CharField(max_length=100, default='Circle Explaination')
-    picture = models.URLField('picture', default="htttp://none.com")
+    picture = models.FileField()
 
     def __str__(self):
         return self.name

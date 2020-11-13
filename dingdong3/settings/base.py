@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'circle.apps.CircleConfig',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -125,6 +126,18 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.1/howto/static-files/
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+AWS_ACCESS_KEY_ID = 'AKIARJNGMVAWRDJTREPQ' # .csv 파일에 있는 내용을 입력 Access key ID
+AWS_SECRET_ACCESS_KEY = 'jiA7ACtlaYmK0PQJ7dx2oYgzH8Q6s/lse6gzT9qe' # .csv 파일에 있는 내용을 입력 Secret access key
+AWS_REGION = 'ap-northeast-2'
+
+###S3 Storages
+AWS_STORAGE_BUCKET_NAME = 'dingdong-bucket' # 설정한 버킷 이름
+AWS_S3_CUSTOM_DOMAIN = '%s.s3.%s.amazonaws.com' % (AWS_STORAGE_BUCKET_NAME,AWS_REGION)
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'path/to/store/my/files/')

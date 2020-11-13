@@ -21,7 +21,8 @@ class SignUp(APIView):
         username = request.data['username']
         password = request.data['password']
         email = request.data['email']
-        user = DUser.objects.create_user(username=username, email=email, password=password)
+        picture = request.data['picture']
+        user = DUser.objects.create_user(username=username, email=email, password=password, picture=picture)
         token = Token.objects.create(user=user)
         print('user', user)
         return JsonResponse({"token": token.key}, safe=False)
@@ -97,13 +98,14 @@ class CircleList(APIView):
     def post(self, request, format=None):
         name = request.data['name']
         explanation = request.data['explanation']
+        picture= request.data['picture']
         try:
             circle = Circle.objects.get(name=name)
         except:
             circle = False
         if circle:
             return JsonResponse({"success": False})
-        circle = Circle.objects.create(name=name, explanation=explanation)
+        circle = Circle.objects.create(name=name, explanation=explanation, picture=picture)
         Board.objects.create(name="Notice", circle=circle, memberWrite=False)
         Board.objects.create(name="Gallery", circle=circle)
         MemberShip.objects.create(user=DUser.objects.get(username=request.user), circle=circle, isAdmin=True, isActive=True)
