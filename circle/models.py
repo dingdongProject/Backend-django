@@ -1,10 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
 import datetime
-# Create your models here.
+
 
 class DUser(User):
-    picture = models.FileField()
+    picture = models.FileField(default="default.png")
 
     def __str__(self):
         return self.username
@@ -13,7 +13,7 @@ class DUser(User):
 class Circle(models.Model):
     name = models.CharField(max_length=100, default='circle')
     explanation = models.CharField(max_length=100, default='Circle Explaination')
-    picture = models.FileField()
+    picture = models.FileField(default="default.png")
 
     def __str__(self):
         return self.name

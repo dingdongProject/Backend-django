@@ -3,8 +3,9 @@ from circle import views
 from rest_framework.authtoken.views import obtain_auth_token
 
 urlpatterns = [
+    path('ping', views.Ping.as_view()),
     path('signup', views.SignUp.as_view()),
-    path('login',  obtain_auth_token),
+    path('login',  views.LogIn.as_view()),
     path('user', views.UserMine.as_view()),
     path('user/circles', views.UserCircles.as_view()),
     path('users/<slug:name>', views.UserDetail.as_view()),

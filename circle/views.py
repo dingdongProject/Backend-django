@@ -14,20 +14,41 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
 from django.contrib.auth.models import UserManager
 from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework import mixins
 from rest_framework import generics
+from rest_framework.authtoken.views import ObtainAuthToken
+
+
+
+class Ping(APIView):
+    def get(self,request):
+        return Response({"pong"})
 
 class SignUp(APIView):
     def post(self, request, format=None):
-        username = request.data['username']
-        password = request.data['password']
-        email = request.data['email']
-        picture = request.data['picture']
-        user = DUser.objects.create_user(username=username, email=email, password=password, picture=picture)
-        token = Token.objects.create(user=user)
-        print('user', user)
-        return JsonResponse({"token": token.key}, safe=False)
+        try:
+            username = request.data['username']
+            password = request.data['password']
+            email = request.data['email']
+            user = DUser.objects.create_user(username=username, email=email, password=password)
+            return JsonResponse({"success": True})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False, "message": e.__str__()})
 
+class LogIn(APIView):
+    def post(self, request):
+        try:
+            user = DUser.objects.get(username=request.data['username'])
+            serializer = AuthTokenSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            token, created = Token.objects.get_or_create(user=user)
+            circles = get_circle_of_user(user)
+            return JsonResponse({"success": True ,'token': token.key, "user": DUserSerializer(user).data, "circles": circles})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False, "message": e.__str__()})
 
 class UserMine(APIView):
     permission_classes = (IsAuthenticated,)
@@ -49,11 +70,9 @@ class UserCircles(APIView):
 
     def get(self, request, format=None):
         user = DUser.objects.get(username=request.user)
-        print(user)
-        membership = MemberShip.objects.filter(user=user)
-        print(membership)
-        circles = [{"name": member.circle.name, "isAdmin": member.isAdmin} for member in membership]
-        return JsonResponse({"circles": circles}, safe=False)
+        circles = get_circle_of_user(user)
+        JsonResponse({"circles": circles}, safe=False)
+
 
 class MemberShipList(APIView):
     permission_classes = (IsAuthenticated,)
@@ -237,7 +256,7 @@ class CommentList(APIView):
     permission_classes = (IsAuthenticated,)
     def post(self, request, pk, format=None):
         try:
-            user = Duser.objects.get(username=username)
+            user = DUser.objects.get(username=request.user)
             post = Post.objects.get(id=pk)
             content = request.data['content']
             comment = Comment.objects.create(owner=user, post=post, content=content)
@@ -300,3 +319,13 @@ def check_authorization(user, circle):
         return False
     else:
         return False
+
+def get_circle_of_user(user):
+    membership = MemberShip.objects.filter(user=user)
+    circles = []
+    for m in membership:
+        serializer = CircleSerializer(m.circle)
+        data = serializer.data
+        circles.append(data)
+
+    return circles
