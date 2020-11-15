@@ -130,8 +130,8 @@ USE_TZ = False
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-AWS_ACCESS_KEY_ID = 'AKIARJNGMVAWRDJTREPQ' # .csv 파일에 있는 내용을 입력 Access key ID
-AWS_SECRET_ACCESS_KEY = 'jiA7ACtlaYmK0PQJ7dx2oYgzH8Q6s/lse6gzT9qe' # .csv 파일에 있는 내용을 입력 Secret access key
+AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID") # .csv 파일에 있는 내용을 입력 Access key ID
+AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY") # .csv 파일에 있는 내용을 입력 Secret access key
 AWS_REGION = 'ap-northeast-2'
 
 ###S3 Storages
