@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 from pathlib import Path
 import os
-from aws import aws
+from aws import AWS
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -130,8 +130,8 @@ USE_TZ = False
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-AWS_ACCESS_KEY_ID = aws.AWS_ACCESS_KEY_ID # .csv 파일에 있는 내용을 입력 Access key ID
-AWS_SECRET_ACCESS_KEY = aws.AWS_SECRET_ACCESS_KEY # .csv 파일에 있는 내용을 입력 Secret access key
+AWS_ACCESS_KEY_ID = AWS.AWS_ACCESS_KEY_ID # .csv 파일에 있는 내용을 입력 Access key ID
+AWS_SECRET_ACCESS_KEY = AWS.AWS_SECRET_ACCESS_KEY # .csv 파일에 있는 내용을 입력 Secret access key
 AWS_REGION = 'ap-northeast-2'
 
 ###S3 Storages
