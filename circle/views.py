@@ -53,10 +53,14 @@ class LogIn(APIView):
 class UserMine(APIView):
     permission_classes = (IsAuthenticated,)
     def get(self, request, format=None):
-        user = DUser.objects.get(username=request.user)
-        serializer = DUserSerializer(user)
-        return JsonResponse(serializer.data, safe=False)
-
+        try:
+            user = DUser.objects.get(username=request.user)
+            serializer = DUserSerializer(user)
+            circles = get_circle_of_user(user)
+            return JsonResponse({"success": True, "user": serializer.data, "circles": circles})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False, "message": e.__str__()})
 
 class UserDetail(APIView):
     def get(self, request, name, format=None):
