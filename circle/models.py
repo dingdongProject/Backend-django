@@ -13,7 +13,7 @@ class DUser(User):
 class Circle(models.Model):
     name = models.CharField(max_length=100, default='circle')
     explanation = models.CharField(max_length=100, default='Circle Explaination')
-    picture = models.FileField(default="default.png")
+    picture = models.FileField(default="default-circle.png")
 
     def __str__(self):
         return self.name

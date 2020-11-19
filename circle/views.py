@@ -4,7 +4,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 from circle.models import Circle, MemberShip, DUser, Board, Post, Read, Comment
-from circle.serializers import DUserSerializer, CircleSerializer, MemberShipSerializer, BoardSerializer, PostSerializer, CommentSerializer
+from circle.serializers import DUserSerializer, CircleSerializer, MemberShipSerializer, BoardSerializer, PostSerializer, CommentSerializer,PostSimpleSerializer
 from rest_framework.views import APIView
 
 from rest_framework.response import Response
@@ -96,7 +96,7 @@ class MemberShipList(APIView):
             return JsonResponse({"success": False}, safe=False)
         except Exception as e:
             print(e)
-            return JsonResponse({"success": False}, safe=False)
+            return JsonResponse({"success": False, "message": e.__str__()})
 
     def delete(self, request, format=None):
         try:
@@ -120,21 +120,26 @@ class CircleList(APIView):
         return JsonResponse(serializer.data, safe=False)
 
     def post(self, request, format=None):
-        name = request.data['name']
-        explanation = request.data['explanation']
-        picture= request.data['picture']
         try:
+            name = request.data['name']
+            explanation = request.data['explanation']
+            picture = request.data['picture']
             circle = Circle.objects.get(name=name)
         except:
             circle = False
         if circle:
-            return JsonResponse({"success": False})
-        circle = Circle.objects.create(name=name, explanation=explanation, picture=picture)
-        Board.objects.create(name="Notice", circle=circle, memberWrite=False)
+            return JsonResponse({"success": False, "message": "circle Already Exist"})
+        if picture == "":
+            circle = Circle.objects.create(name=name, explanation=explanation)
+        else:
+            circle = Circle.objects.create(name=name, explanation=explanation, picture=picture)
+        user = DUser.objects.get(username=request.user)
+        notice = Board.objects.create(name="Notice", circle=circle, memberWrite=False)
         Board.objects.create(name="Gallery", circle=circle)
-        MemberShip.objects.create(user=DUser.objects.get(username=request.user), circle=circle, isAdmin=True, isActive=True)
+        Post.objects.create(title="Welcome To {}".format(name),
+                            content="Welcome! Invite members to the page and create new posts!", owner=user, board=notice)
         serializer = CircleSerializer(circle)
-        return JsonResponse({"success": False, "circle": serializer.data}, safe=False)
+        return JsonResponse({"success": True, "circle": serializer.data}, safe=False)
 
     def delete(self, request, format=None):
         name = request.data['name']
@@ -169,10 +174,10 @@ class BoardList(APIView):
             boards = Board.objects.filter(circle=circle)
             print(boards)
             boards = [{"id": board.id, "name": board.name, "memberWrite": board.memberWrite} for board in boards]
-            return JsonResponse({"boards": boards})
+            return JsonResponse({"success": True, "boards": boards})
         except Exception as e:
             print(e)
-            return JsonResponse({"success": False})
+            return JsonResponse({"success": False, "message": e.__str__()})
     def post(self, request, circle, board, format=None):
         try:
             if not check_authorization(request.user, circle):
@@ -211,6 +216,20 @@ class BoardDetail(APIView):
             print(e)
             return JsonResponse({"success": False})
 
+class NoticeList(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, circle, format=None):
+        try:
+            circle = Circle.objects.get(name=circle)
+            board = Board.objects.filter(circle=circle, name="Notice")
+            posts = Post.objects.filter(board=board[0])
+            serializer = PostSerializer(posts, many=True)
+            return JsonResponse({"success": True, "posts": serializer.data})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False, "message": e.__str__()})
+
 class PostList(APIView):
     permission_classes = (IsAuthenticated,)
     def post(self, request, pk, format=None):
@@ -225,7 +244,7 @@ class PostList(APIView):
             members = [member.user for member in membership]
             for member in members:
                 Read.objects.create(post=post, user=member)
-            serializer = PostSerializer(post)
+            serializer = PostSimpleSerializer(post)
             return JsonResponse({"success": True, "post": serializer.data})
         except Exception as e:
             print(e)

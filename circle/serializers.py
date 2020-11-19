@@ -31,6 +31,11 @@ class PostSerializer(serializers.ModelSerializer):
         model= Post
         fields =['id', 'board', 'title', 'content', 'owner']
 
+class PostSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ['id', 'title', 'content']
+
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
