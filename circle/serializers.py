@@ -28,8 +28,8 @@ class BoardSerializer(serializers.ModelSerializer):
 
 class PostSerializer(serializers.ModelSerializer):
     class Meta:
-        model= Post
-        fields =['id', 'board', 'title', 'content', 'owner']
+        model = Post
+        fields = ['id', 'board', 'title', 'content']
 
 class PostSimpleSerializer(serializers.ModelSerializer):
     class Meta:

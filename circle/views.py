@@ -224,7 +224,7 @@ class NoticeList(APIView):
             circle = Circle.objects.get(name=circle)
             board = Board.objects.filter(circle=circle, name="Notice")
             posts = Post.objects.filter(board=board[0])
-            serializer = PostSerializer(posts, many=True)
+            serializer = PostSimpleSerializer(posts, many=True)
             return JsonResponse({"success": True, "posts": serializer.data})
         except Exception as e:
             print(e)
@@ -244,7 +244,7 @@ class PostList(APIView):
             members = [member.user for member in membership]
             for member in members:
                 Read.objects.create(post=post, user=member)
-            serializer = PostSimpleSerializer(post)
+            serializer = PostSerializer(post)
             return JsonResponse({"success": True, "post": serializer.data})
         except Exception as e:
             print(e)
@@ -253,8 +253,11 @@ class PostList(APIView):
     def get(self, request, pk, format=None):
         try:
             board = Board.objects.get(id=pk)
+            print(board)
             posts = Post.objects.filter(board=board)
+            print(posts)
             serializer = PostSerializer(posts, many=True)
+            print(serializer.data)
             return JsonResponse({"success": True, "post": serializer.data})
         except Exception as e:
             print(e)
