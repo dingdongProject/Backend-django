@@ -256,9 +256,17 @@ class PostList(APIView):
             print(board)
             posts = Post.objects.filter(board=board)
             print(posts)
-            serializer = PostSerializer(posts, many=True)
-            print(serializer.data)
-            return JsonResponse({"success": True, "post": serializer.data})
+            data = []
+            for post in posts:
+                data.append({
+                    'title' : post.title,
+                    'content' :  post.content,
+                    'created': post.created_at,
+                    'owner': post.owner.username,
+                    'id': post.id,
+                    'board': post.board.id
+                })
+            return JsonResponse({"success": True, "post": data})
         except Exception as e:
             print(e)
             return JsonResponse({"success": False})
