@@ -134,6 +134,8 @@ class CircleList(APIView):
         else:
             circle = Circle.objects.create(name=name, explanation=explanation, picture=picture)
         user = DUser.objects.get(username=request.user)
+        MemberShip.objects.create(user=user, circle=circle, isAdmin=True,
+                                  isActive=True)
         notice = Board.objects.create(name="Notice", circle=circle, memberWrite=False)
         Board.objects.create(name="Gallery", circle=circle)
         Post.objects.create(title="Welcome To {}".format(name),
