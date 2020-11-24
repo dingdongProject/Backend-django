@@ -44,8 +44,7 @@ class Post(models.Model):
     title = models.CharField(max_length=100, default='None')
     content = models.CharField(max_length=1000, default='None')
     owner = models.ForeignKey('Duser', on_delete=models.CASCADE)
-    created_at = models.DateField(default=datetime.date.today())
-    updated_at = models.DateField(default=datetime.date.today())
+    created_at = models.DateTimeField(default=datetime.datetime.now())
 
 class Read(models.Model):
     post = models.ForeignKey('Post', on_delete=models.CASCADE)
@@ -57,6 +56,7 @@ class Comment(models.Model):
     content = models.CharField(max_length=1000, default='None')
     owner = models.ForeignKey('Duser', on_delete=models.CASCADE)
     created_at = models.DateField(default=datetime.date.today())
-    updated_at = models.DateField(default=datetime.date.today())
 
-
+class PostImage(models.Model):
+    post = models.ForeignKey('Post', on_delete=models.CASCADE)
+    image = models.FileField(default="default.png")

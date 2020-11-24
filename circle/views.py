@@ -3,8 +3,8 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
-from circle.models import Circle, MemberShip, DUser, Board, Post, Read, Comment
-from circle.serializers import DUserSerializer, CircleSerializer, MemberShipSerializer, BoardSerializer, PostSerializer, CommentSerializer,PostSimpleSerializer
+from circle.models import Circle, MemberShip, DUser, Board, Post, Read, Comment, PostImage
+from circle.serializers import DUserSerializer, CircleSerializer, MemberShipSerializer, BoardSerializer, PostSerializer, CommentSerializer,PostSimpleSerializer, PostImageSerializer
 from rest_framework.views import APIView
 
 from rest_framework.response import Response
@@ -180,13 +180,16 @@ class BoardList(APIView):
         except Exception as e:
             print(e)
             return JsonResponse({"success": False, "message": e.__str__()})
-    def post(self, request, circle, board, format=None):
+    def post(self, request, circle, format=None):
         try:
+            '''
             if not check_authorization(request.user, circle):
                 return JsonResponse({"success": False})
+            '''
             circle = Circle.objects.get(name=circle)
-            board = Board.objects.create(name=board, circle=circle)
-            return JsonResponse({"success": True, "board": {"id": board.id, "name": board.name, "memberWrite": board.memberWrite, "circle": board.circle.name}})
+            board_name = request.data['name']
+            board = Board.objects.create(name=board_name, circle=circle)
+            return JsonResponse({"success": True, "board": {"id": board.id, "name": board.name, "memberWrite": board.memberWrite}})
         except Exception as e:
             print(e)
             return JsonResponse({"success": False})
@@ -239,15 +242,38 @@ class PostList(APIView):
             board = Board.objects.get(id=pk)
             title = request.data['title']
             content = request.data['content']
+            images = []
+            print(request.FILES.getlist('images[]'))
+            print('images', images)
+            for image in request.FILES.getlist('images[]'):
+                print(image)
+                images.append(image)
+
+            print('images', images)
             user = DUser.objects.get(username=request.user)
             post = Post.objects.create(board=board, title=title, content=content, owner=user)
+            imageList = []
+            for image in images:
+                imageItem = PostImage.objects.create(post=post, image=image)
+                imageList.append(imageItem)
+            print('images', imageList)
             circle = board.circle
             membership = MemberShip.objects.filter(circle=circle)
             members = [member.user for member in membership]
             for member in members:
                 Read.objects.create(post=post, user=member)
-            serializer = PostSerializer(post)
-            return JsonResponse({"success": True, "post": serializer.data})
+            images = PostImage.objects.filter(post=post)
+            serializer = PostImageSerializer(images, many=True)
+            data = {
+                'title': post.title,
+                'content': post.content,
+                'created': post.created_at,
+                'owner': post.owner.username,
+                'id': post.id,
+                'board': post.board.id,
+                'images': serializer.data
+            }
+            return JsonResponse({"success": True, "post": data})
         except Exception as e:
             print(e)
             return JsonResponse({"success": False})
@@ -256,18 +282,23 @@ class PostList(APIView):
         try:
             board = Board.objects.get(id=pk)
             print(board)
-            posts = Post.objects.filter(board=board)
+            posts = Post.objects.filter(board=board).order_by('-created_at')
             print(posts)
             data = []
+
             for post in posts:
+                images = PostImage.objects.filter(post=post)
+                serializer = PostImageSerializer(images, many=True)
                 data.append({
                     'title' : post.title,
                     'content' :  post.content,
                     'created': post.created_at,
                     'owner': post.owner.username,
                     'id': post.id,
-                    'board': post.board.id
+                    'board': post.board.id,
+                    'images': serializer.data
                 })
+                print(data)
             return JsonResponse({"success": True, "post": data})
         except Exception as e:
             print(e)
