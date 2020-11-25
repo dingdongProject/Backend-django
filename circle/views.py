@@ -4,7 +4,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 from circle.models import Circle, MemberShip, DUser, Board, Post, Read, Comment, PostImage
-from circle.serializers import DUserSerializer, CircleSerializer, MemberShipSerializer, BoardSerializer, PostSerializer, CommentSerializer,PostSimpleSerializer, PostImageSerializer
+from circle.serializers import DUserSerializer, CircleSerializer, MemberShipSerializer, BoardSerializer, PostSerializer, CommentSerializer,PostSimpleSerializer, PostImageSerializer, UserImageSerializer
 from rest_framework.views import APIView
 
 from rest_framework.response import Response
@@ -286,9 +286,18 @@ class PostList(APIView):
             print(posts)
             data = []
 
+
             for post in posts:
+                commentObjects = Comment.objects.filter(post=post)
                 images = PostImage.objects.filter(post=post)
                 serializer = PostImageSerializer(images, many=True)
+                comments = []
+                for comment in commentObjects:
+                    comments.append({
+                        'content': comment.content,
+                        'owner': UserImageSerializer(comment.owner).data,
+                        'created_at': comment.created_at
+                    })
                 data.append({
                     'title' : post.title,
                     'content' :  post.content,
@@ -296,7 +305,8 @@ class PostList(APIView):
                     'owner': post.owner.username,
                     'id': post.id,
                     'board': post.board.id,
-                    'images': serializer.data
+                    'images': serializer.data,
+                    'comments': comments
                 })
                 print(data)
             return JsonResponse({"success": True, "post": data})
@@ -327,8 +337,11 @@ class CommentList(APIView):
             post = Post.objects.get(id=pk)
             content = request.data['content']
             comment = Comment.objects.create(owner=user, post=post, content=content)
-            return JsonResponse({"success": True})
-
+            return JsonResponse({"success": True, 'comment': {
+                        'content': comment.content,
+                        'owner': UserImageSerializer(comment.owner).data,
+                        'created_at': comment.created_at
+                    }})
         except Exception as e:
             print(e)
             return JsonResponse({"success": False})

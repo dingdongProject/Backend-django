@@ -55,7 +55,7 @@ class Comment(models.Model):
     post = models.ForeignKey('Post', on_delete=models.CASCADE)
     content = models.CharField(max_length=1000, default='None')
     owner = models.ForeignKey('Duser', on_delete=models.CASCADE)
-    created_at = models.DateField(default=datetime.date.today())
+    created_at = models.DateTimeField(default=datetime.datetime.now())
 
 class PostImage(models.Model):
     post = models.ForeignKey('Post', on_delete=models.CASCADE)
