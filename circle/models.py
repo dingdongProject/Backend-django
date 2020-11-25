@@ -29,7 +29,8 @@ class MemberShip(models.Model):
 
 class Schedule(models.Model):
     circle = models.ForeignKey('Circle', on_delete=models.CASCADE)
-    date = models.DateField()
+    datetime = models.DateTimeField(default=datetime.datetime.now())
+    title = models.CharField(max_length=500, default='None')
     content = models.CharField(max_length=500, default='None')
 
 class Board(models.Model):

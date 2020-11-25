@@ -3,8 +3,8 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
-from circle.models import Circle, MemberShip, DUser, Board, Post, Read, Comment, PostImage
-from circle.serializers import DUserSerializer, CircleSerializer, MemberShipSerializer, BoardSerializer, PostSerializer, CommentSerializer,PostSimpleSerializer, PostImageSerializer, UserImageSerializer
+from circle.models import Circle, MemberShip, DUser, Board, Post, Read, Comment, PostImage, Schedule
+from circle.serializers import DUserSerializer, CircleSerializer, MemberShipSerializer, BoardSerializer, PostSerializer, CommentSerializer,PostSimpleSerializer, PostImageSerializer, UserImageSerializer, ScheduleSerializer
 from rest_framework.views import APIView
 
 from rest_framework.response import Response
@@ -382,6 +382,18 @@ class CommentDetail(APIView):
             comment.content = content
             comment.save()
             return JsonResponse({"success": True, "content": comment.content})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False})
+
+class ScheduleList(APIView):
+    permission_classes = (IsAuthenticated,)
+    def get(self, request, circle, format=None):
+        try:
+            circle = Circle.objects.get(name=circle)
+            schedules = Schedule.objects.filter(circle=circle)
+            serializer = ScheduleSerializer(schedules, many=True)
+            return JsonResponse({"success": True, 'schedules': serializer.data})
         except Exception as e:
             print(e)
             return JsonResponse({"success": False})

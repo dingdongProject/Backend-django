@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from circle.models import Circle, MemberShip, DUser, Schedule, Board, Post, Comment, PostImage
+from circle.models import Circle, MemberShip, DUser, Schedule, Board, Post, Comment, PostImage, Schedule
 
 class DUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -51,3 +51,8 @@ class UserImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = DUser
         fields = ['username','picture']
+
+class ScheduleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Schedule
+        fields = ['title', 'content', 'datetime']
