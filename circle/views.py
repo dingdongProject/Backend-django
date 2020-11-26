@@ -388,7 +388,7 @@ class CommentDetail(APIView):
 
 class ScheduleList(APIView):
     permission_classes = (IsAuthenticated,)
-    def get(self, request, circle, format=None):
+    def get(self, request, format=None):
         try:
             user = request.user
             memberships = MemberShip.objects.filter(user = user)
