@@ -17,7 +17,7 @@ urlpatterns = [
     path('circles/<slug:circle>/notices', views.NoticeList.as_view()),
     path('circles/<slug:circle>/schedules', views.ScheduleList.as_view()),
     path('schedules', views.ScheduleList.as_view()),
-    path('schedules/<slug:circle>', views.ScheduleList.as_view()),
+    #path('schedules/<slug:circle>', views.ScheduleList.as_view()),
     path('board/<int:pk>', views.BoardDetail.as_view()),
     path('board/<int:pk>/post', views.PostList.as_view()),
     path('post/<int:pk>/read', views.ReadMarking.as_view()),
