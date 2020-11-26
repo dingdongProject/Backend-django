@@ -18,6 +18,7 @@ from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework import mixins
 from rest_framework import generics
 from rest_framework.authtoken.views import ObtainAuthToken
+import datetime
 
 
 
@@ -219,7 +220,7 @@ class BoardDetail(APIView):
             return JsonResponse({"success": True, "board": {"id": board.id, "name": board.name, "memberWrite": board.memberWrite, "circle": board.circle.name}});
         except Exception as e:
             print(e)
-            return JsonResponse({"success": False})
+            return JsonResponse({"success": False, "message": e.__str__()})
 
 class NoticeList(APIView):
     permission_classes = (IsAuthenticated,)
@@ -276,7 +277,7 @@ class PostList(APIView):
             return JsonResponse({"success": True, "post": data})
         except Exception as e:
             print(e)
-            return JsonResponse({"success": False})
+            return JsonResponse({"success": False, "message": e.__str__()})
 
     def get(self, request, pk, format=None):
         try:
@@ -312,7 +313,7 @@ class PostList(APIView):
             return JsonResponse({"success": True, "post": data})
         except Exception as e:
             print(e)
-            return JsonResponse({"success": False})
+            return JsonResponse({"success": False, "message": e.__str__()})
 
 class ReadMarking(APIView):
     permission_classes = (IsAuthenticated,)
@@ -326,7 +327,7 @@ class ReadMarking(APIView):
             return JsonResponse({"success": True})
         except Exception as e:
             print(e)
-            return JsonResponse({"success": False})
+            return JsonResponse({"success": False, "message": e.__str__()})
 
 
 class CommentList(APIView):
@@ -344,7 +345,7 @@ class CommentList(APIView):
                     }})
         except Exception as e:
             print(e)
-            return JsonResponse({"success": False})
+            return JsonResponse({"success": False, "message": e.__str__()})
 
     def get(self, pk, format=None):
         try:
@@ -355,7 +356,7 @@ class CommentList(APIView):
 
         except Exception as e:
             print(e)
-            return JsonResponse({"success": False})
+            return JsonResponse({"success": False, "message": e.__str__()})
 
 
 
@@ -368,8 +369,10 @@ class CommentDetail(APIView):
             comment = Comment.objects.get(id=comment_pk)
             comment.delete()
 
-        except:
-            return JsonResponse({"success": False})
+
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False, "message": e.__str__()})
         return JsonResponse({"success": True}, safe=False)
 
 
@@ -384,7 +387,7 @@ class CommentDetail(APIView):
             return JsonResponse({"success": True, "content": comment.content})
         except Exception as e:
             print(e)
-            return JsonResponse({"success": False})
+            return JsonResponse({"success": False, "message": e.__str__()})
 
 class ScheduleList(APIView):
     permission_classes = (IsAuthenticated,)
@@ -394,18 +397,32 @@ class ScheduleList(APIView):
             memberships = MemberShip.objects.filter(user = user)
             circles = []
             for membership in memberships:
-                circle = Circle.objects.get(user = membership.user)
+                circle = membership.circle
                 circles.append(circle)
             schedules = []
             for circle in circles:
                 schedule = Schedule.objects.filter(circle=circle)
-                schedules.append(schedule)
-            serializer = ScheduleSerializer(schedules, many=True)
+                serializer = ScheduleSerializer(schedule, many=True)
+                schedules.append({'circle': circle.name, 'scheduleList' :serializer.data})
+            return JsonResponse({"success": True, 'schedules': schedules})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False, "message": e.__str__()})
+
+    def post(self, request, format=None):
+        try:
+            name = request.data['circle']
+            title = request.data['title']
+            content = request.data['content']
+            datetime_str = request.data['datetime']
+            date_time_obj = datetime.datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S')
+            circle = Circle.objects.get(name=name)
+            schedule = Schedule.objects.create(circle=circle, datetime=date_time_obj, title=title, content=content)
+            serializer = ScheduleSerializer(schedule)
             return JsonResponse({"success": True, 'schedules': serializer.data})
         except Exception as e:
             print(e)
-            return JsonResponse({"success": False})
-
+            return JsonResponse({"success": False, "message": e.__str__()})
 
 #기능 추가
 def check_authorization(user, circle):
