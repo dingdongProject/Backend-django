@@ -390,8 +390,16 @@ class ScheduleList(APIView):
     permission_classes = (IsAuthenticated,)
     def get(self, request, circle, format=None):
         try:
-            circle = Circle.objects.get(name=circle)
-            schedules = Schedule.objects.filter(circle=circle)
+            user = request.user
+            memberships = MemberShip.objects.filter(user = user)
+            circles = []
+            for membership in memberships:
+                circle = Circle.objects.get(user = membership.user)
+                circles.append(circle)
+            schedules = []
+            for circle in circles:
+                schedule = Schedule.objects.filter(circle=circle)
+                schedules.append(schedule)
             serializer = ScheduleSerializer(schedules, many=True)
             return JsonResponse({"success": True, 'schedules': serializer.data})
         except Exception as e:
