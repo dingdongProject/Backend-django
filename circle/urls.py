@@ -11,6 +11,7 @@ urlpatterns = [
     path('users/<slug:name>', views.UserDetail.as_view()),
     path('membership', views.MemberShipList.as_view()),
     path('circles', views.CircleList.as_view()),
+    path('circleInfo/<slug:code>', views.CircleInfo.as_view()),
     path('circles/<slug:name>', views.CircleDetail.as_view()),
     path('circles/<slug:name>/members', views.CircleMembers.as_view()),
     path('circles/<slug:circle>/boards', views.BoardList.as_view()),
@@ -22,6 +23,9 @@ urlpatterns = [
     path('board/<int:pk>/post', views.PostList.as_view()),
     path('post/<int:pk>/read', views.ReadMarking.as_view()),
     path('post/<int:pk>/comment', views.CommentList.as_view()),
-    path('post/<int:pk>/comment/<int:comment_pk>', views.CommentDetail.as_view())
+    path('post/<int:pk>/comment/<int:comment_pk>', views.CommentDetail.as_view()),
+    path('request', views.MakeRequest.as_view()),
+    path('respond', views.ProcessRequest.as_view()),
+    path('circlesearch/<slug:search>', views.CircleSearch.as_view())
 
 ]

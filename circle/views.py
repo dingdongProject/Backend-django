@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
-from circle.models import Circle, MemberShip, DUser, Board, Post, Read, Comment, PostImage, Schedule
+from circle.models import Circle, MemberShip, DUser, Board, Post, Read, Comment, PostImage, Schedule,Tag, CircleTag, Request
 from circle.serializers import DUserSerializer, CircleSerializer, MemberShipSerializer, BoardSerializer, PostSerializer, CommentSerializer,PostSimpleSerializer, PostImageSerializer, UserImageSerializer, ScheduleSerializer
 from rest_framework.views import APIView
 
@@ -19,7 +19,7 @@ from rest_framework import mixins
 from rest_framework import generics
 from rest_framework.authtoken.views import ObtainAuthToken
 import datetime
-
+import random, string
 
 
 class Ping(APIView):
@@ -109,8 +109,9 @@ class MemberShipList(APIView):
                 membership.delete()
                 return JsonResponse({"success": True})
             return JsonResponse({"success": False})
-        except:
-            return JsonResponse({"success": False})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False, "message": e.__str__()})
 
 
 class CircleList(APIView):
@@ -125,6 +126,8 @@ class CircleList(APIView):
             name = request.data['name']
             explanation = request.data['explanation']
             picture = request.data['picture']
+            try: tags = request.data['tags'].split(" ")
+            except: tags = []
             circle = Circle.objects.get(name=name)
         except:
             circle = False
@@ -134,6 +137,13 @@ class CircleList(APIView):
             circle = Circle.objects.create(name=name, explanation=explanation)
         else:
             circle = Circle.objects.create(name=name, explanation=explanation, picture=picture)
+        for tag in tags:
+            tagObject = Tag.objects.create(name=tag)
+            CircleTag.objects.create(circle=circle, tag=tagObject)
+        random.seed = circle.id
+        code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        circle.code = code
+        circle.save()
         user = DUser.objects.get(username=request.user)
         MemberShip.objects.create(user=user, circle=circle, isAdmin=True,
                                   isActive=True)
@@ -159,6 +169,19 @@ class CircleDetail(APIView):
         circle = Circle.objects.get(name=name)
         serializer = CircleSerializer(circle)
         return JsonResponse(serializer.data, safe=False)
+
+class CircleInfo(APIView):
+    permission_classes = (IsAuthenticated,)
+    def get(self, request, code, format=None):
+        try:
+            circle = Circle.objects.get(code=code)
+            serializer = CircleSerializer(circle)
+            return JsonResponse({"success" : True, "circle" :serializer.data})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False, "message": e.__str__()})
+
+
 
 class CircleMembers(APIView):
     permission_classes = (IsAuthenticated,)
@@ -393,8 +416,8 @@ class ScheduleList(APIView):
     permission_classes = (IsAuthenticated,)
     def get(self, request, format=None):
         try:
-            user = request.user
-            memberships = MemberShip.objects.filter(user = user)
+            user = DUser.objects.get(username=request.user)
+            memberships = MemberShip.objects.filter(user=user)
             circles = []
             for membership in memberships:
                 circle = membership.circle
@@ -423,6 +446,86 @@ class ScheduleList(APIView):
         except Exception as e:
             print(e)
             return JsonResponse({"success": False, "message": e.__str__()})
+
+
+
+class MakeRequest(APIView):
+    def post(self, request):
+        try:
+            circle_code = request.data['code']
+            user = DUser.objects.get(username=request.user)
+            circle = Circle.objects.get(code=circle_code)
+            memberShip = MemberShip.objects.filter(user=user, circle=circle)
+            if len(memberShip) != 0:
+                return JsonResponse({"success": False, "message": "Already Joined"})
+            requestExist = Request.objects.filter(requester=user, circle=circle)
+            if len(requestExist) != 0:
+                return JsonResponse({"success": False, "message": "Already Made Request"})
+            Request.objects.create(requester=user, circle=circle)
+            return JsonResponse({"success": True})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False, "message": e.__str__()})
+
+class ProcessRequest(APIView):
+    def post(self, request):
+        try:
+            request_id= request.data['id']
+            accept = request.data['accept']
+            requestObj = Request.object.get(id=request_id)
+            if accept:
+                MemberShip.objects.create(user=requestObj.requester, circle=requestObj.circle)
+            requestObj.isProcessed = True
+            requestObj.save()
+            return JsonResponse({"success": True})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False, "message": e.__str__()})
+
+
+class CircleSearch(APIView):
+    def get(self,request, search):
+        try:
+            if search== 'all':
+                circles = Circle.objects.all()[:5]
+                serializer = CircleSerializer(circles, many=True)
+                return JsonResponse({"success": True, "circles": serializer.data})
+            circlesNameObjects = Circle.objects.filter(name__startswith=search)
+            circlesName = []
+            for circle in circlesNameObjects:
+                circlesName.append(circle)
+            circlesCodeObjects = Circle.objects.filter(code=search)
+            circlesCode = []
+            for circle in circlesCodeObjects:
+                circlesCode.append(circle)
+            tags = Tag.objects.filter(name__startswith = search)
+            circlesTag =[]
+            for tag in tags:
+                circle_tags =CircleTag.objects.filter(tag=tag)
+                for circle_tag in circle_tags:
+                    circlesTag.append(circle_tag.circle)
+            serializer = CircleSerializer(circlesName + circlesCode + circlesTag, many=True)
+            print(circlesName + circlesCode + circlesTag)
+            return JsonResponse({"success": True, "circles": serializer.data})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False, "message": e.__str__()})
+
+
+
+def getReqeusts(user):
+    try:
+        adminMemberships = MemberShip.objects.filter(user=user, isAdmin=True)
+        requestList = []
+        for mem in adminMemberships:
+            circle = mem.circle
+            requests = Request.objects.filter(circle=circle, isProcessed=False)
+            for request in requests:
+                requestList.append(request)
+        return requestList
+    except:
+        return []
+
 
 #기능 추가
 def check_authorization(user, circle):
