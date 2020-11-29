@@ -486,8 +486,10 @@ class ProcessRequest(APIView):
 class CircleSearch(APIView):
     def get(self,request, search):
         try:
-            if search== 'all':
-                circles = Circle.objects.all()[:5]
+            if search == 'all':
+                circles = Circle.objects.all()
+                if len(circles) > 5:
+                    circles = circles[:5]
                 serializer = CircleSerializer(circles, many=True)
                 return JsonResponse({"success": True, "circles": serializer.data})
             circlesNameObjects = Circle.objects.filter(name__startswith=search)
