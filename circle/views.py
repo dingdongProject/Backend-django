@@ -595,7 +595,7 @@ class ProcessRequest(APIView):
         try:
             request_id= request.data['id']
             accept = request.data['accept']
-            requestObj = Request.object.get(id=request_id)
+            requestObj = Request.objects.get(id=request_id)
             if accept:
                 MemberShip.objects.create(user=requestObj.requester, circle=requestObj.circle)
             requestObj.isProcessed = True
