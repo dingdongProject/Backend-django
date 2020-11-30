@@ -15,6 +15,7 @@ urlpatterns = [
     path('circles/<slug:name>', views.CircleDetail.as_view()),
     path('circles/<slug:name>/members', views.CircleMembers.as_view()),
     path('circles/<slug:circle>/boards', views.BoardList.as_view()),
+    path('circles/<slug:circle>/gallery', views.GalleryDetail.as_view()),
     path('circles/<slug:circle>/notices', views.NoticeList.as_view()),
     path('circles/<slug:circle>/schedules', views.ScheduleList.as_view()),
     path('schedules', views.ScheduleList.as_view()),
@@ -26,6 +27,6 @@ urlpatterns = [
     path('post/<int:pk>/comment/<int:comment_pk>', views.CommentDetail.as_view()),
     path('request', views.MakeRequest.as_view()),
     path('respond', views.ProcessRequest.as_view()),
-    path('circlesearch/<slug:search>', views.CircleSearch.as_view())
-
+    path('circlesearch/<slug:search>', views.CircleSearch.as_view()),
+    path('main', views.MainPage.as_view())
 ]

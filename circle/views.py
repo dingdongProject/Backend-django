@@ -20,6 +20,7 @@ from rest_framework import generics
 from rest_framework.authtoken.views import ObtainAuthToken
 import datetime
 import random, string
+from django.db.models import Q
 
 
 class Ping(APIView):
@@ -59,6 +60,69 @@ class UserMine(APIView):
             serializer = DUserSerializer(user)
             circles = get_circle_of_user(user)
             return JsonResponse({"success": True, "user": serializer.data, "circles": circles})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False, "message": e.__str__()})
+
+class MainPage(APIView):
+    permission_classes = (IsAuthenticated,)
+    def get(self, request, format=None):
+        try:
+            user = DUser.objects.get(username=request.user)
+            memberships = MemberShip.objects.filter(user=user)
+            circles = []
+            for membership in memberships:
+                circles.append(membership.circle)
+            notice_board = Board.objects.filter(circle__in=circles, name='Notice')
+            notice_posts = Post.objects.filter(board__in=notice_board).order_by('-created_at')
+            other_boards = Board.objects.filter(Q(circle__in=circles) & ~Q(name='Notice') & ~Q(name='Gallery'))
+            news_posts = Post.objects.filter(board__in=other_boards)
+            notice_data =[]
+            news_data = []
+            for post in notice_posts:
+                commentObjects = Comment.objects.filter(post=post)
+                images = PostImage.objects.filter(post=post)
+                serializer = PostImageSerializer(images, many=True)
+                comments = []
+                for comment in commentObjects:
+                    comments.append({
+                        'content': comment.content,
+                        'owner': UserImageSerializer(comment.owner).data,
+                        'created_at': comment.created_at
+                    })
+                notice_data.append({
+                    'title' : post.title,
+                    'content' :  post.content,
+                    'created': post.created_at,
+                    'owner': UserImageSerializer(post.owner).data,
+                    'id': post.id,
+                    'board': post.board.id,
+                    'images': serializer.data,
+                    'comments': comments,
+                })
+            for post in news_posts:
+                commentObjects = Comment.objects.filter(post=post)
+                images = PostImage.objects.filter(post=post)
+                serializer = PostImageSerializer(images, many=True)
+                Userserializer = DUserSerializer(post.owner)
+                comments = []
+                for comment in commentObjects:
+                    comments.append({
+                        'content': comment.content,
+                        'owner': UserImageSerializer(comment.owner).data,
+                        'created_at': comment.created_at
+                    })
+                news_data.append({
+                    'title': post.title,
+                    'content': post.content,
+                    'created': post.created_at,
+                    'owner': UserImageSerializer(post.owner).data,
+                    'id': post.id,
+                    'board': post.board.id,
+                    'images': serializer.data,
+                    'comments': comments,
+                })
+            return JsonResponse({"success": True, "notices": notice_data, "news": news_data})
         except Exception as e:
             print(e)
             return JsonResponse({"success": False, "message": e.__str__()})
@@ -125,34 +189,41 @@ class CircleList(APIView):
         try:
             name = request.data['name']
             explanation = request.data['explanation']
-            picture = request.data['picture']
+            try: picture = request.data['picture']
+            except: picture = ""
             try: tags = request.data['tags'].split(" ")
             except: tags = []
-            circle = Circle.objects.get(name=name)
-        except:
-            circle = False
-        if circle:
-            return JsonResponse({"success": False, "message": "circle Already Exist"})
-        if picture == "":
-            circle = Circle.objects.create(name=name, explanation=explanation)
-        else:
-            circle = Circle.objects.create(name=name, explanation=explanation, picture=picture)
-        for tag in tags:
-            tagObject = Tag.objects.create(name=tag)
-            CircleTag.objects.create(circle=circle, tag=tagObject)
-        random.seed = circle.id
-        code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-        circle.code = code
-        circle.save()
-        user = DUser.objects.get(username=request.user)
-        MemberShip.objects.create(user=user, circle=circle, isAdmin=True,
-                                  isActive=True)
-        notice = Board.objects.create(name="Notice", circle=circle, memberWrite=False)
-        Board.objects.create(name="Gallery", circle=circle)
-        Post.objects.create(title="Welcome To {}".format(name),
-                            content="Welcome! Invite members to the page and create new posts!", owner=user, board=notice)
-        serializer = CircleSerializer(circle)
-        return JsonResponse({"success": True, "circle": serializer.data}, safe=False)
+            try: circle = Circle.objects.get(name=name)
+            except: circle = False
+            if circle:
+                return JsonResponse({"success": False, "message": "circle Already Exist"})
+            if picture == "":
+                circle = Circle.objects.create(name=name, explanation=explanation)
+            else:
+                circle = Circle.objects.create(name=name, explanation=explanation, picture=picture)
+            for tag in tags:
+                tagExist = Tag.objects.filter(name=tag)
+                if len(tagExist) != 0:
+                    CircleTag.objects.create(circle=circle, tag=tagExist[0])
+                else:
+                    tagObject = Tag.objects.create(name=tag)
+                    CircleTag.objects.create(circle=circle, tag=tagObject)
+            random.seed = circle.id
+            code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+            circle.code = code
+            circle.save()
+            user = DUser.objects.get(username=request.user)
+            MemberShip.objects.create(user=user, circle=circle, isAdmin=True,
+                                      isActive=True)
+            notice = Board.objects.create(name="Notice", circle=circle, memberWrite=False)
+            Board.objects.create(name="Gallery", circle=circle)
+            Post.objects.create(title="Welcome To {}".format(name),
+                                content="Welcome! Invite members to the page and create new posts!", owner=user, board=notice)
+            serializer = CircleSerializer(circle)
+            return JsonResponse({"success": True, "circle": serializer.data}, safe=False)
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False, "message": e.__str__()})
 
     def delete(self, request, format=None):
         name = request.data['name']
@@ -218,6 +289,21 @@ class BoardList(APIView):
             print(e)
             return JsonResponse({"success": False})
 
+class GalleryDetail(APIView):
+    permission_classes = (IsAuthenticated,)
+    def get(self, request, circle, format=None):
+        try:
+            circleObj = Circle.objects.get(name=circle)
+            board = Board.objects.get(circle=circleObj, name="Gallery")
+            posts = Post.objects.filter(board=board)
+            print(posts)
+            postImages = PostImage.objects.filter(post=posts[0])
+            print(postImages)
+            postSerializer = PostImageSerializer(postImages[0])
+            return JsonResponse({"success": True, "gallery": postSerializer.data})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False, "message": e.__str__(), "gallery": {"image":"https://dingdong-bucket.s3.ap-northeast-2.amazonaws.com/default-circle.png"}})
 
 class BoardDetail(APIView):
     permission_classes = (IsAuthenticated,)
@@ -253,8 +339,29 @@ class NoticeList(APIView):
             circle = Circle.objects.get(name=circle)
             board = Board.objects.filter(circle=circle, name="Notice")
             posts = Post.objects.filter(board=board[0])
-            serializer = PostSimpleSerializer(posts, many=True)
-            return JsonResponse({"success": True, "posts": serializer.data})
+            data = []
+            for post in posts:
+                commentObjects = Comment.objects.filter(post=post)
+                images = PostImage.objects.filter(post=post)
+                serializer = PostImageSerializer(images, many=True)
+                comments = []
+                for comment in commentObjects:
+                    comments.append({
+                        'content': comment.content,
+                        'owner': UserImageSerializer(comment.owner).data,
+                        'created_at': comment.created_at
+                    })
+                data.append({
+                    'title': post.title,
+                    'content': post.content,
+                    'created': post.created_at,
+                    'owner': UserImageSerializer(post.owner).data,
+                    'id': post.id,
+                    'board': post.board.id,
+                    'images': serializer.data,
+                    'comments': comments
+                })
+            return JsonResponse({"success": True, "posts": data})
         except Exception as e:
             print(e)
             return JsonResponse({"success": False, "message": e.__str__()})
@@ -292,7 +399,7 @@ class PostList(APIView):
                 'title': post.title,
                 'content': post.content,
                 'created': post.created_at,
-                'owner': post.owner.username,
+                'owner': UserImageSerializer(post.owner).data,
                 'id': post.id,
                 'board': post.board.id,
                 'images': serializer.data
@@ -326,7 +433,7 @@ class PostList(APIView):
                     'title' : post.title,
                     'content' :  post.content,
                     'created': post.created_at,
-                    'owner': post.owner.username,
+                    'owner': UserImageSerializer(post.owner).data,
                     'id': post.id,
                     'board': post.board.id,
                     'images': serializer.data,
@@ -337,6 +444,9 @@ class PostList(APIView):
         except Exception as e:
             print(e)
             return JsonResponse({"success": False, "message": e.__str__()})
+
+
+
 
 class ReadMarking(APIView):
     permission_classes = (IsAuthenticated,)
@@ -547,7 +657,20 @@ def get_circle_of_user(user):
     circles = []
     for m in membership:
         serializer = CircleSerializer(m.circle)
-        data = serializer.data
+        data = dict(serializer.data)
+        data['isAdmin'] = m.isAdmin
         circles.append(data)
+    print(circles)
 
+    return circles
+
+def get_admin_circle(user):
+    membership = MemberShip.objects.filter(user=user)
+    circles = []
+    for m in membership:
+        if m.isAdmin:
+            data = dict()
+            data['circle'] = m.circle
+            circles.append(data)
+    print(circles)
     return circles

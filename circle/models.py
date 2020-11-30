@@ -75,7 +75,7 @@ class Read(models.Model):
     user = models.ForeignKey('Duser', on_delete=models.CASCADE)
     hasRead = models.BooleanField(default=False)
     def __str__(self):
-        return self.post.title+ " " + self.user.name
+        return self.post.title+ " " + self.user.username
 
 class Comment(models.Model):
     post = models.ForeignKey('Post', on_delete=models.CASCADE)
