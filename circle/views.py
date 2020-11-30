@@ -131,7 +131,8 @@ class MainPage(APIView):
                         requestList.append({
                             "requester": DUserSerializer(request.requester).data,
                             "circle": CircleSerializer(request.circle).data,
-                            "isProcessed": request.isProcessed
+                            "isProcessed": request.isProcessed,
+                            "id": request.id
                         })
 
             return JsonResponse({"success": True, "notices": notice_data, "news": news_data, "requests": requestList})
