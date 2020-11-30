@@ -129,8 +129,8 @@ class MainPage(APIView):
                     requests = Request.objects.filter(circle=circle, isProcessed=False)
                     for request in requests:
                         requestList.append({
-                            "requester": request.requester,
-                            "circle": request.circle,
+                            "requester": DUserSerializer(request.requester).data,
+                            "circle": CircleSerializer(request.circle).data,
                             "isProcessed": request.isProcessed
                         })
 
