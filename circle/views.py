@@ -126,7 +126,7 @@ class MainPage(APIView):
             for circle in circles:
                 membership = MemberShip.objects.get(user=user, circle=circle)
                 if membership.isAdmin:
-                    request = Request.objects.filter(circle=circle, isProcessed=False)
+                    request = Request.objects.get(circle=circle, isProcessed=False)
                     requests.append(request)
             requestList = []
             for request in requests:
