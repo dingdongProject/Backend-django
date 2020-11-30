@@ -122,19 +122,17 @@ class MainPage(APIView):
                     'images': serializer.data,
                     'comments': comments,
                 })
-            requests = []
+            requestList = []
             for circle in circles:
                 membership = MemberShip.objects.get(user=user, circle=circle)
                 if membership.isAdmin:
-                    request = Request.objects.filter(circle=circle, isProcessed=False)
-                    requests = requests + request
-            requestList = []
-            for request in requests:
-                requestList.append({
-                    "requester": request.requester,
-                    "circle": request.circle,
-                    "isProcessed": request.isProcessed
-                })
+                    requests = Request.objects.filter(circle=circle, isProcessed=False)
+                    for request in requests:
+                        requestList.append({
+                            "requester": request.requester,
+                            "circle": request.circle,
+                            "isProcessed": request.isProcessed
+                        })
 
             return JsonResponse({"success": True, "notices": notice_data, "news": news_data, "requests": requestList})
         except Exception as e:
