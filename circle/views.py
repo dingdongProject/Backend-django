@@ -275,6 +275,19 @@ class CircleMembers(APIView):
         members = [{"name": member.user.username, "isAdmin": member.isAdmin} for member in membership]
         return JsonResponse({"members": members}, safe=False)
 
+    def put(self, request, name, format=None):
+        try:
+            circle = Circle.objects.get(name=name)
+            user_name = request.data['name']
+            new_isadmin = request.data['isAdmin']
+            user = DUser.objects.get(username=user_name)
+            membership = MemberShip.objects.get(circle=circle, user=user)
+            membership.isAdmin = new_isadmin
+            membership.save()
+            return JsonResponse({"success": True})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False, "message": e.__str__()})
 class BoardList(APIView):
     permission_classes = (IsAuthenticated,)
 
