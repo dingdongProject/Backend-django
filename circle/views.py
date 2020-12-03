@@ -99,6 +99,9 @@ class MainPage(APIView):
                     'board': post.board.id,
                     'images': serializer.data,
                     'comments': comments,
+                    'check_read': post.check_read,
+                    'hasRead': Read.objects.get(post=post, user=DUser.objects.get(
+                        username=request.user)).hasRead if post.check_read else False
                 })
             for post in news_posts:
                 commentObjects = Comment.objects.filter(post=post)
@@ -121,6 +124,9 @@ class MainPage(APIView):
                     'board': post.board.id,
                     'images': serializer.data,
                     'comments': comments,
+                    'check_read': post.check_read,
+                    'hasRead': Read.objects.get(post=post, user=DUser.objects.get(
+                        username=request.user)).hasRead if post.check_read else False
                 })
             requestList = []
             for circle in circles:
@@ -385,7 +391,10 @@ class NoticeList(APIView):
                     'id': post.id,
                     'board': post.board.id,
                     'images': serializer.data,
-                    'comments': comments
+                    'comments': comments,
+                    'check_read': post.check_read,
+                    'hasRead': Read.objects.get(post=post, user=DUser.objects.get(
+                        username=request.user)).hasRead if post.check_read else False
                 })
             return JsonResponse({"success": True, "posts": data})
         except Exception as e:
@@ -399,6 +408,10 @@ class PostList(APIView):
             board = Board.objects.get(id=pk)
             title = request.data['title']
             content = request.data['content']
+            checkRead = request.data['check_read']
+            if checkRead == "true": checkRead = True
+            else: checkRead = False
+            print(checkRead)
             images = []
             print(request.FILES.getlist('images[]'))
             print('images', images)
@@ -408,7 +421,7 @@ class PostList(APIView):
 
             print('images', images)
             user = DUser.objects.get(username=request.user)
-            post = Post.objects.create(board=board, title=title, content=content, owner=user)
+            post = Post.objects.create(board=board, title=title, content=content, owner=user, check_read=checkRead)
             imageList = []
             for image in images:
                 imageItem = PostImage.objects.create(post=post, image=image)
@@ -417,8 +430,12 @@ class PostList(APIView):
             circle = board.circle
             membership = MemberShip.objects.filter(circle=circle)
             members = [member.user for member in membership]
-            for member in members:
-                Read.objects.create(post=post, user=member)
+            if checkRead:
+                for member in members:
+                    if member == user:
+                        Read.objects.create(post=post, user=member, hasRead=True)
+                    else:
+                        Read.objects.create(post=post, user=member)
             images = PostImage.objects.filter(post=post)
             serializer = PostImageSerializer(images, many=True)
             data = {
@@ -428,7 +445,9 @@ class PostList(APIView):
                 'owner': UserImageSerializer(post.owner).data,
                 'id': post.id,
                 'board': post.board.id,
-                'images': serializer.data
+                'images': serializer.data,
+                'check_read': checkRead,
+                'hasRead': True
             }
             return JsonResponse({"success": True, "post": data})
         except Exception as e:
@@ -463,7 +482,9 @@ class PostList(APIView):
                     'id': post.id,
                     'board': post.board.id,
                     'images': serializer.data,
-                    'comments': comments
+                    'comments': comments,
+                    'check_read': post.check_read,
+                    'hasRead': Read.objects.get(post=post, user=DUser.objects.get(username=request.user)).hasRead if post.check_read else False
                 })
                 print(data)
             return JsonResponse({"success": True, "post": data})
@@ -487,8 +508,27 @@ class ReadMarking(APIView):
         except Exception as e:
             print(e)
             return JsonResponse({"success": False, "message": e.__str__()})
-
-
+    def get(self, request, pk, format=None):
+        try:
+            post = Post.objects.get(id=pk)
+            reads = Read.objects.filter(post=post)
+            data = []
+            for read in reads:
+                if read.hasRead:
+                    data.append({
+                        "user": UserImageSerializer(read.user).data,
+                        "hasRead": read.hasRead
+                    })
+            for read in reads:
+                if not read.hasRead:
+                    data.append({
+                        "user": UserImageSerializer(read.user).data,
+                        "hasRead": read.hasRead
+                    })
+            return JsonResponse({"success": True, "list": data})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False, "message": e.__str__()})
 class CommentList(APIView):
     permission_classes = (IsAuthenticated,)
     def post(self, request, pk, format=None):

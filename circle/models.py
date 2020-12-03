@@ -67,6 +67,7 @@ class Post(models.Model):
     content = models.CharField(max_length=1000, default='None')
     owner = models.ForeignKey('Duser', on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=datetime.datetime.now())
+    check_read = models.BooleanField(default=False)
     def __str__(self):
         return self.board.circle.name + " " + self.board.name + " " + self.title
 
