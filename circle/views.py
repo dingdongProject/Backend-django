@@ -76,7 +76,7 @@ class MainPage(APIView):
             notice_board = Board.objects.filter(circle__in=circles, name='Notice')
             notice_posts = Post.objects.filter(board__in=notice_board).order_by('-created_at')
             other_boards = Board.objects.filter(Q(circle__in=circles) & ~Q(name='Notice') & ~Q(name='Gallery'))
-            news_posts = Post.objects.filter(board__in=other_boards)
+            news_posts = Post.objects.filter(board__in=other_boards).order_by('-created_at')
             notice_data =[]
             news_data = []
             for post in notice_posts:
@@ -370,7 +370,7 @@ class NoticeList(APIView):
         try:
             circle = Circle.objects.get(name=circle)
             board = Board.objects.filter(circle=circle, name="Notice")
-            posts = Post.objects.filter(board=board[0])
+            posts = Post.objects.filter(board=board[0]).order_by('-created_at')
             data = []
             for post in posts:
                 commentObjects = Comment.objects.filter(post=post)
