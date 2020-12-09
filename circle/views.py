@@ -92,6 +92,7 @@ class MainPage(APIView):
                     })
                 notice_data.append({
                     'title' : post.title,
+                    'circle': CircleSerializer(post.board.circle).data,
                     'content' :  post.content,
                     'created': post.created_at,
                     'owner': UserImageSerializer(post.owner).data,
@@ -117,6 +118,7 @@ class MainPage(APIView):
                     })
                 news_data.append({
                     'title': post.title,
+                    'circle': CircleSerializer(post.board.circle).data,
                     'content': post.content,
                     'created': post.created_at,
                     'owner': UserImageSerializer(post.owner).data,
@@ -388,6 +390,7 @@ class NoticeList(APIView):
                     'content': post.content,
                     'created': post.created_at,
                     'owner': UserImageSerializer(post.owner).data,
+                    'circle': CircleSerializer(circle).data,
                     'id': post.id,
                     'board': post.board.id,
                     'images': serializer.data,
