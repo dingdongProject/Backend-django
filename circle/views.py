@@ -63,6 +63,26 @@ class UserMine(APIView):
         except Exception as e:
             print(e)
             return JsonResponse({"success": False, "message": e.__str__()})
+    def put(self, request, format=None):
+        try:
+            user = DUser.objects.get(username=request.user)
+            new_name = request.data['name']
+            new_email = request.data['email']
+            try:
+                new_picture = request.data['picture']
+            except:
+                new_picture = user.picture
+            user.email = new_email
+            user.username = new_name
+            user.picture = new_picture
+            user.save()
+            serializer = DUserSerializer(user)
+            return JsonResponse({"success": True, "user": serializer.data})
+        except Exception as e:
+            print(e)
+            return JsonResponse({"success": False, "message": e.__str__()})
+
+
 
 class MainPage(APIView):
     permission_classes = (IsAuthenticated,)
