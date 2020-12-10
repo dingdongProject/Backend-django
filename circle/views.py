@@ -134,6 +134,11 @@ class MainPage(APIView):
                 serializer = PostImageSerializer(images, many=True)
                 Userserializer = DUserSerializer(post.owner)
                 comments = []
+                try:
+                    read = Read.objects.get(post=post, user=DUser.objects.get(
+                        username=request.user)).hasRead if post.check_read else False
+                except:
+                    read = False
                 for comment in commentObjects:
                     comments.append({
                         'content': comment.content,
@@ -151,8 +156,7 @@ class MainPage(APIView):
                     'images': serializer.data,
                     'comments': comments,
                     'check_read': post.check_read,
-                    'hasRead': Read.objects.get(post=post, user=DUser.objects.get(
-                        username=request.user)).hasRead if post.check_read else False
+                    'hasRead': read
                 })
             requestList = []
             for circle in circles:
@@ -403,6 +407,11 @@ class NoticeList(APIView):
                 images = PostImage.objects.filter(post=post)
                 serializer = PostImageSerializer(images, many=True)
                 comments = []
+                try:
+                    read = Read.objects.get(post=post, user=DUser.objects.get(
+                        username=request.user)).hasRead if post.check_read else False
+                except:
+                    read = False
                 for comment in commentObjects:
                     comments.append({
                         'content': comment.content,
@@ -420,8 +429,7 @@ class NoticeList(APIView):
                     'images': serializer.data,
                     'comments': comments,
                     'check_read': post.check_read,
-                    'hasRead': Read.objects.get(post=post, user=DUser.objects.get(
-                        username=request.user)).hasRead if post.check_read else False
+                    'hasRead': read
                 })
             return JsonResponse({"success": True, "posts": data})
         except Exception as e:
