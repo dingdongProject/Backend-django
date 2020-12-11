@@ -32,7 +32,7 @@ $ python manage.py runserver --settings=dingdong3.settings.local
 ```
 server will be running at http://127.0.0.1:8000/
 
-## Package
+## Packages
 
 - Django 3.1.2
 - boto3 1.16.17
