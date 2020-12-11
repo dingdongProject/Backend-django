@@ -7,6 +7,9 @@ Based on Django & Django-restframework.
 Dingdong is an mobile app for managing circles(social clubs) and to communicate with the members of the circle. It started as a project for Software Engineering
 class at HanYang University. It provides simple but useful functions for circle admins and members to use. This repository is for backend server of dingdong project.
 
+## Demo Link
+[dingdong_demo](https://www.youtube.com/watch?v=3OvvbV-6EnE&t=188s)
+
 ## Project Setup
 ```
 python3 -m venv venv
