@@ -1,4 +1,4 @@
-# 🛎  Dingdong <img src="https://img.shields.io/badge/React%20Native-0.63.3-blue" /> 
+# 🛎  Dingdong <img src="https://img.shields.io/badge/Django-3.1.2-green" />  <img src="https://img.shields.io/badge/Djangorestframework-3.12.1-red" /> 
 **동아리를 위한 커뮤니티 앱 서비스: 딩동** 
 
 <img src="https://github.com/dingdongProject/Backend-django/blob/master/image/dingdong.gif?raw=true" width="150"/>
